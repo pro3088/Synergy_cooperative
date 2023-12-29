@@ -47,6 +47,7 @@
                                     <artifactId>react-client</artifactId>
                                     <version>${project.version}</version>
                                     <outputDirectory>target/classes/static</outputDirectory>
+                                    <overWrite>true</overWrite>
                                     <includes>
                                         **
                                     </includes>

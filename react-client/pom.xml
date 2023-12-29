@@ -20,7 +20,7 @@
     <build>
         <resources>
             <resource>
-                <directory>../../../react-client/build</directory>
+                <directory>build</directory>
             </resource>
         </resources>
         <plugins>
@@ -64,7 +64,7 @@
                 </executions>
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
-                    <workingDirectory>../../../react-client</workingDirectory>
+                    <workingDirectory>.</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>
