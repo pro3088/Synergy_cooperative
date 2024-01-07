@@ -8,19 +8,18 @@ public class UserDTO {
 
     private String id;
 
-    @NotNull
     @Size(max = 255)
     private String firstName;
 
-    @NotNull
     @Size(max = 255)
     private String lastName;
 
-    @NotNull
     @Size(max = 255)
     private String password;
 
-    @NotNull
+    @Size(max = 255)
+    private String emailAddress;
+
     @Size(max = 255)
     private String referralCode;
 
@@ -74,4 +73,11 @@ public class UserDTO {
         this.status = status;
     }
 
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
+    }
 }

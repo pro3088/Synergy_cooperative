@@ -7,4 +7,6 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     boolean existsByReferralCodeIgnoreCase(String referralCode);
 
+    User findByEmailAddress(String emailAddress);
+
 }

@@ -42,9 +42,14 @@ public class UserResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<String> createUser(@RequestBody @Valid final UserDTO userDTO) {
-        final String createdId = userService.create(userDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+    public ResponseEntity<User> createUser(@RequestBody @Valid final UserDTO userDTO) {
+        if (userDTO.getFirstName() == null || userDTO.getLastName() == null
+                || userDTO.getPassword() == null || userDTO.getEmailAddress() == null
+                || userDTO.getReferralCode() == null) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+        User user = userService.create(userDTO);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -52,6 +57,13 @@ public class UserResource {
             @RequestBody @Valid final UserDTO userDTO) {
         userService.update(id, userDTO);
         return ResponseEntity.ok(id);
+    }
+
+    @PostMapping("/login")
+    @ApiResponse(responseCode = "201")
+    public ResponseEntity<UserDTO> validateUser(@RequestBody @Valid final UserDTO userDTO){
+        UserDTO user = userService.validateUser(userDTO);
+        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
     }
 
     @DeleteMapping("/{id}")

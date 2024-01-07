@@ -22,6 +22,9 @@ public class User {
     private String lastName;
 
     @Column(nullable = false)
+    private String emailAddress;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -116,4 +119,11 @@ public class User {
         this.lastUpdated = lastUpdated;
     }
 
+    public String getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
+    }
 }

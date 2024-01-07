@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.synergy.synergy_cooperative.util.VerificationException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -41,7 +42,7 @@ public class UserService {
                 .orElseThrow(NotFoundException::new);
     }
 
-    public String create(final UserDTO userDTO) {
+    public User create(final UserDTO userDTO) {
         final User user = new User();
         mapToEntity(userDTO, user);
 
@@ -54,7 +55,7 @@ public class UserService {
         user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,2)));
 
         referralService.update(referraldto.getId(), referraldto);
-        return usersRepository.save(user).getId();
+        return usersRepository.save(user);
     }
 
     public void update(final String id, final UserDTO userDTO) {
@@ -62,6 +63,14 @@ public class UserService {
                 .orElseThrow(NotFoundException::new);
         mapToEntity(userDTO, user);
         usersRepository.save(user);
+    }
+
+    public UserDTO validateUser(final UserDTO userDTO){
+        User user = usersRepository.findByEmailAddress(userDTO.getEmailAddress());
+        if (!verifyPassword(userDTO.getPassword(), user.getPassword())){
+            throw new VerificationException("User details does not match");
+        }
+        return mapToDTO(user, new UserDTO());
     }
 
     public void delete(final String id) {
@@ -75,6 +84,7 @@ public class UserService {
         userDTO.setPassword(user.getPassword());
         userDTO.setReferralCode(hashString(user.getReferralCode()));
         userDTO.setStatus(user.getStatus());
+        userDTO.setEmailAddress(userDTO.getEmailAddress());
         return userDTO;
     }
 
@@ -84,6 +94,7 @@ public class UserService {
         user.setPassword(userDTO.getPassword());
         user.setReferralCode(userDTO.getReferralCode());
         user.setStatus(userDTO.getStatus());
+        user.setEmailAddress(userDTO.getEmailAddress());
     }
 
     private String hashString(String value){

@@ -4,7 +4,7 @@ package com.synergy.synergy_cooperative.user;
 public enum UserStatus {
     ADMIN("AD"),
     INVESTOR("IN"),
-    LOAN("LOAN");
+    LOAN("LO");
 
     final String code;
 
