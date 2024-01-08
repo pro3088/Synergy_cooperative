@@ -2,6 +2,7 @@ package com.synergy.synergy_cooperative.authorization;
 
 import com.synergy.synergy_cooperative.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 @Configuration
 @EnableWebSecurity
@@ -33,17 +35,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new UserService();
     }
 
+    @Value("${authentication-test.auth.accessTokenCookieName}")
+    private String accessTokenCookieName;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http.cors()
+                .and().csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/users/login", "/api/users", "/api/referrals").permitAll()
+                .antMatchers("/",
+                        "/error",
+                        "/favicon.ico",
+                        "/**/*.png",
+                        "/**/*.gif",
+                        "/**/*.svg",
+                        "/**/*.jpg",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                .headers().httpStrictTransportSecurity().disable()
+                .and()
                 .logout()
+                .logoutUrl("/api/users/logout")
                 .clearAuthentication(true)
                 .invalidateHttpSession(true)
-                .deleteCookies("SESSIONID")
+                .deleteCookies(accessTokenCookieName)
                 .permitAll()
                 .and()
                 .sessionManagement()
@@ -63,6 +82,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) {
         StrictHttpFirewall strictHttpFirewall = new StrictHttpFirewall();
         strictHttpFirewall.setAllowSemicolon(true);
+        strictHttpFirewall.setAllowUrlEncodedPercent(true);
         web.httpFirewall(strictHttpFirewall);
     }
 
