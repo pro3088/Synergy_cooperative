@@ -26,3 +26,15 @@ springdoc:
 
 server:
   port: 8500
+
+authentication-test:
+  auth:
+    accessTokenCookieName: SESSIONID
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.glassfish.jersey: ERROR
+    org.reflections: ERROR
+    com.synergy.synergy_cooperative.authorization: INFO
