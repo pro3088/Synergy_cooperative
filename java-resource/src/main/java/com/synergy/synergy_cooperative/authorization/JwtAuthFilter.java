@@ -1,6 +1,8 @@
 package com.synergy.synergy_cooperative.authorization;
 
 import com.synergy.synergy_cooperative.user.UserService;
+import com.synergy.synergy_cooperative.util.JwtException;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -44,47 +48,59 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String refreshToken = null;
         String username = null;
         String refreshUsername = null;
+        String warning = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             log.info("Getting details from token");
             token = authHeader.substring(7);
             username = jwtService.extractUsername(token);
             log.info("username has been extracted: {}", username);
         }
-        else if (cookies != null){
+        else if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (accessTokenCookieName.equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    username = jwtService.extractUsername(token);
-                    log.info("username has been extracted: {}", username);
-                }
-                else if (refreshTokenCookieName.equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                    refreshUsername = jwtService.extractUsername(refreshToken);
-                    log.info("username has been extracted: {}", username);
+                try {
+                    if (accessTokenCookieName.equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        username = jwtService.extractUsername(token);
+                        log.info("username has been extracted: {}", username);
+                    } else if (refreshTokenCookieName.equals(cookie.getName())) {
+                        refreshToken = cookie.getValue();
+                        refreshUsername = jwtService.extractUsername(refreshToken);
+                        log.info("Refresh username has been extracted: {}", refreshUsername);
+                    }
+                } catch (ExpiredJwtException e) {
+                    warning = e.getMessage();
+                    log.warn("Error Occurred: {}", warning);
                 }
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            log.info("getting user details from username {}", username);
-            UserDetails userDetails = userService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
-                if(jwtService.isTokenAboutToExpire(token) && jwtService.validateToken(refreshToken, userDetails)){
-                    token = jwtService.generateToken(refreshUsername);
-                    response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (username != null ) {
+                log.info("getting user details from username {}", username);
+                UserDetails userDetails = userService.loadUserByUsername(username);
+                if(jwtService.validateToken(token, userDetails)) {
+                    if (jwtService.isTokenAboutToExpire(token) && refreshToken != null && jwtService.validateToken(refreshToken, userDetails)) {
+                        token = jwtService.generateToken(username);
+                        response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName, token).getCookie());
+                    }
+                    setAuthContext(request, userDetails);
                 }
-                setAuthContext(request, userDetails);
             }
-            else if(jwtService.validateToken(refreshToken, userDetails)){
-                token = jwtService.generateToken(refreshUsername);
-                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
-                setAuthContext(request, userDetails);
+            else if(refreshUsername != null){
+                log.info("getting user details from username {}", refreshUsername);
+                UserDetails userDetails = userService.loadUserByUsername(refreshUsername);
+                if (jwtService.validateToken(refreshToken, userDetails)) {
+                    token = jwtService.generateToken(refreshUsername);
+                    response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName, token).getCookie());
+                    setAuthContext(request, userDetails);
+                }
             }
             else {
                 SecurityContextHolder.clearContext();
                 response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName,"").getCookie());
                 response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,"").getCookie());
-                return;
+                throw new JwtException(warning);
             }
         }
         filterChain.doFilter(request, response);
