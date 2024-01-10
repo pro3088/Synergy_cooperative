@@ -5,12 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -30,15 +30,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     protected static Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
-    @Value("${authentication-test.auth.accessTokenCookieName}")
+    @Value("${authentication.auth.accessTokenCookieName}")
     private String accessTokenCookieName;
+
+    @Value("${authentication.auth.refreshTokenCookieName}")
+    private String refreshTokenCookieName;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         Cookie[] cookies = request.getCookies();
         String token = null;
+        String refreshToken = null;
         String username = null;
+        String refreshUsername = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             log.info("Getting details from token");
             token = authHeader.substring(7);
@@ -52,6 +57,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     username = jwtService.extractUsername(token);
                     log.info("username has been extracted: {}", username);
                 }
+                else if (refreshTokenCookieName.equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    refreshUsername = jwtService.extractUsername(refreshToken);
+                    log.info("username has been extracted: {}", username);
+                }
             }
         }
 
@@ -59,12 +69,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             log.info("getting user details from username {}", username);
             UserDetails userDetails = userService.loadUserByUsername(username);
             if (jwtService.validateToken(token, userDetails)) {
-                log.info("adding token to security context");
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if(jwtService.isTokenAboutToExpire(token) && jwtService.validateToken(refreshToken, userDetails)){
+                    token = jwtService.generateToken(refreshUsername);
+                    response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
+                }
+                setAuthContext(request, userDetails);
+            }
+            else if(jwtService.validateToken(refreshToken, userDetails)){
+                token = jwtService.generateToken(refreshUsername);
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
+                setAuthContext(request, userDetails);
+            }
+            else {
+                SecurityContextHolder.clearContext();
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName,"").getCookie());
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,"").getCookie());
+                return;
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private static void setAuthContext(HttpServletRequest request, UserDetails userDetails) {
+        log.info("adding token to security context");
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

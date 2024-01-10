@@ -4,6 +4,7 @@ public class AuthRequest {
 
     private String username;
     private String password;
+    private boolean rememberMe;
 
     public AuthRequest(String username, String password) {
         this.username = username;
@@ -24,5 +25,13 @@ public class AuthRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isRememberMe() {
+        return rememberMe;
+    }
+
+    public void setRememberMe(boolean rememberMe) {
+        this.rememberMe = rememberMe;
     }
 }

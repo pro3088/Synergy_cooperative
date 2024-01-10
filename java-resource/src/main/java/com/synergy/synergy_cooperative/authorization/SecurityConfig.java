@@ -35,15 +35,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new UserService();
     }
 
-    @Value("${authentication-test.auth.accessTokenCookieName}")
+    @Value("${authentication.auth.accessTokenCookieName}")
     private String accessTokenCookieName;
+
+    @Value("${authentication.auth.refreshTokenCookieName}")
+    private String refreshTokenCookieName;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors()
                 .and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/users/login", "/api/users", "/api/referrals").permitAll()
+                .antMatchers("/api/users/login", "/api/users/signup", "/api/referrals").permitAll()
                 .antMatchers("/",
                         "/error",
                         "/favicon.ico",
@@ -63,6 +66,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .clearAuthentication(true)
                 .invalidateHttpSession(true)
                 .deleteCookies(accessTokenCookieName)
+                .deleteCookies(refreshTokenCookieName)
                 .permitAll()
                 .and()
                 .sessionManagement()
