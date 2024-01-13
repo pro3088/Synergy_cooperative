@@ -34,6 +34,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    private String roles;
+
     @OneToMany(mappedBy = "user")
     private Set<Transaction> transactions;
 
@@ -125,5 +127,13 @@ public class User {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }

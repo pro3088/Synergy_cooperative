@@ -28,7 +28,10 @@ public class Transaction {
     private Type type;
 
     @Column()
-    private String referee;
+    private int interest;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal payableAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -83,12 +86,20 @@ public class Transaction {
         this.type = type;
     }
 
-    public String getReferee() {
-        return referee;
+    public int getInterest() {
+        return interest;
     }
 
-    public void setReferee(final String referee) {
-        this.referee = referee;
+    public void setInterest(int interest) {
+        this.interest = interest;
+    }
+
+    public BigDecimal getPayableAmount() {
+        return payableAmount;
+    }
+
+    public void setPayableAmount(BigDecimal payableAmount) {
+        this.payableAmount = payableAmount;
     }
 
     public User getUser() {

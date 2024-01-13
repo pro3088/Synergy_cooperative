@@ -23,7 +23,11 @@ public class UserDTO {
     @Size(max = 255)
     private String referralCode;
 
+    private boolean rememberMe;
+
     private UserStatus status;
+
+    private String roles;
 
     public String getId() {
         return id;
@@ -79,5 +83,17 @@ public class UserDTO {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
+    }
+
+    public boolean getRememberMe() {
+        return rememberMe;
     }
 }

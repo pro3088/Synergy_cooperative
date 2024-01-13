@@ -1,29 +1,40 @@
 package com.synergy.synergy_cooperative.user;
 
+import com.synergy.synergy_cooperative.authorization.pojo.AuthRequest;
+import com.synergy.synergy_cooperative.authorization.pojo.UserInfoDetails;
 import com.synergy.synergy_cooperative.referral.ReferralDTO;
 import com.synergy.synergy_cooperative.referral.ReferralService;
 import com.synergy.synergy_cooperative.util.NotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.synergy.synergy_cooperative.util.VerificationException;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     @Autowired
     UserRepository usersRepository;
     @Autowired
     ReferralService referralService;
+    @Autowired
+    private PasswordEncoder encoder;
+    protected static Logger log = LoggerFactory.getLogger(UserResource.class);
 
     public List<UserDTO> findAll() {
         final List<User> users = usersRepository.findAll(Sort.by("id"));
@@ -42,20 +53,23 @@ public class UserService {
                 .orElseThrow(NotFoundException::new);
     }
 
-    public User create(final UserDTO userDTO) {
+    public UserDTO create(final UserDTO userDTO) {
+        log.info("Creating a new user with name {}", userDTO.getFirstName());
         final User user = new User();
         mapToEntity(userDTO, user);
 
         user.setId(UUID.randomUUID().toString());
-        user.setPassword(hashPassword(user.getPassword()));
+        user.setPassword(encoder.encode(user.getPassword()));
 
+        log.info("updating referral code to used");
         ReferralDTO referraldto = referralService.getByCode(user.getReferralCode());
         referraldto.setUsed(true);
 
         user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,2)));
 
         referralService.update(referraldto.getId(), referraldto);
-        return usersRepository.save(user);
+        usersRepository.save(user);
+        return mapToDTO(user, new UserDTO());
     }
 
     public void update(final String id, final UserDTO userDTO) {
@@ -65,12 +79,34 @@ public class UserService {
         usersRepository.save(user);
     }
 
-    public UserDTO validateUser(final UserDTO userDTO){
-        User user = usersRepository.findByEmailAddress(userDTO.getEmailAddress());
-        if (!verifyPassword(userDTO.getPassword(), user.getPassword())){
-            throw new VerificationException("User details does not match");
+    @Override
+    public UserDetails loadUserByUsername(String email) throws NotFoundException {
+        log.info("Getting user by email - {}", email);
+        Optional<User> userDetail = usersRepository.findByEmailAddress(email);
+        if (userDetail.isPresent()) {
+            log.info("User is found");
+            User user = userDetail.get();
+            return new UserInfoDetails(user);
         }
-        return mapToDTO(user, new UserDTO());
+        log.error("User not found");
+        throw new UsernameNotFoundException("User not found");
+    }
+
+    public UserDTO validateUser(final AuthRequest authRequest){
+        log.info("validating user");
+        Optional<User> user = usersRepository.findByEmailAddress(authRequest.getUsername());
+        if (user.isPresent()) {
+            log.info("user has been validated");
+            User response = new User();
+            response.setId(user.get().getId());
+            response.setStatus(user.get().getStatus());
+            response.setFirstName(user.get().getFirstName());
+            response.setLastName(user.get().getLastName());
+            response.setEmailAddress(user.get().getEmailAddress());
+            return mapToDTO(response, new UserDTO());
+        }
+        log.warn("User is not available");
+        return null;
     }
 
     public void delete(final String id) {
@@ -84,7 +120,8 @@ public class UserService {
         userDTO.setPassword(user.getPassword());
         userDTO.setReferralCode(hashString(user.getReferralCode()));
         userDTO.setStatus(user.getStatus());
-        userDTO.setEmailAddress(userDTO.getEmailAddress());
+        userDTO.setEmailAddress(user.getEmailAddress());
+        userDTO.setRoles(user.getRoles());
         return userDTO;
     }
 
@@ -95,6 +132,7 @@ public class UserService {
         user.setReferralCode(userDTO.getReferralCode());
         user.setStatus(userDTO.getStatus());
         user.setEmailAddress(userDTO.getEmailAddress());
+        user.setRoles(userDTO.getRoles());
     }
 
     private String hashString(String value){
@@ -104,9 +142,4 @@ public class UserService {
     private String hashPassword(String password){
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
-
-    public boolean verifyPassword(String password, String hashedPassword){
-        return BCrypt.checkpw(password, hashedPassword);
-    }
-
 }

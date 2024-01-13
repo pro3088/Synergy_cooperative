@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -21,11 +22,13 @@ public class ReferralResource {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<ReferralDTO>> getAllReferrals() {
         return ResponseEntity.ok(referralService.findAll());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ReferralDTO> getReferral(@PathVariable(name = "id") final String id) {
         return ResponseEntity.ok(referralService.get(id));
     }
@@ -38,6 +41,7 @@ public class ReferralResource {
 
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteReferral(@PathVariable(name = "id") final String id) {
         referralService.delete(id);
         return ResponseEntity.noContent().build();

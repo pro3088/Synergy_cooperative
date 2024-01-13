@@ -1,8 +1,8 @@
-package com.synergy.synergy_cooperative.authorization;
+package com.synergy.synergy_cooperative.authorization.utils;
 
+import com.synergy.synergy_cooperative.authorization.JwtService;
 import com.synergy.synergy_cooperative.user.UserService;
 import com.synergy.synergy_cooperative.util.JwtException;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +60,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 try {
                     if (accessTokenCookieName.equals(cookie.getName())) {
                         token = cookie.getValue();
+                        token = new CookiesUtil().decodeCookieValue(token);
                         username = jwtService.extractUsername(token);
                         log.info("username has been extracted: {}", username);
                     } else if (refreshTokenCookieName.equals(cookie.getName())) {
                         refreshToken = cookie.getValue();
+                        refreshToken = new CookiesUtil().decodeCookieValue(refreshToken);
                         refreshUsername = jwtService.extractUsername(refreshToken);
                         log.info("Refresh username has been extracted: {}", refreshUsername);
                     }
-                } catch (ExpiredJwtException e) {
+                } catch (Exception e) {
                     warning = e.getMessage();
                     log.warn("Error Occurred: {}", warning);
                 }
@@ -96,11 +98,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     setAuthContext(request, userDetails);
                 }
             }
-            else {
+            else{
                 SecurityContextHolder.clearContext();
                 response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName,"").getCookie());
                 response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,"").getCookie());
-                throw new JwtException(warning);
+                if (warning != null)
+                    throw new JwtException(warning);
             }
         }
         filterChain.doFilter(request, response);

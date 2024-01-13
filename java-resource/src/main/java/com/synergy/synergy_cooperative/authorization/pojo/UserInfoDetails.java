@@ -1,4 +1,4 @@
-package com.synergy.synergy_cooperative.authorization;
+package com.synergy.synergy_cooperative.authorization.pojo;
 
 import com.synergy.synergy_cooperative.user.User;
 import org.springframework.security.core.GrantedAuthority;

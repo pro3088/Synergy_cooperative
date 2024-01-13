@@ -4,17 +4,24 @@ import com.synergy.synergy_cooperative.bank.Bank;
 import com.synergy.synergy_cooperative.bank.BankRepository;
 import com.synergy.synergy_cooperative.user.User;
 import com.synergy.synergy_cooperative.user.UserDTO;
+import com.synergy.synergy_cooperative.user.UserResource;
 import com.synergy.synergy_cooperative.user.UserService;
 import com.synergy.synergy_cooperative.util.NotFoundException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +35,8 @@ public class TransactionService {
     @Autowired
     BankRepository bankRepository;
 
+    protected static Logger log = LoggerFactory.getLogger(TransactionService.class);
+
     ModelMapper mapper = new ModelMapper();
 
     public List<TransactionDTO> findAll() {
@@ -35,6 +44,18 @@ public class TransactionService {
         return transactions.stream()
                 .map(transaction -> mapToDTO(transaction, new TransactionDTO()))
                 .collect(Collectors.toList());
+    }
+
+    public Applications getApplicationsByUser(Integer offset, Integer limit, String userId, int pageSize) {
+        Pageable pageable = PageRequest.of(offset == null ? 0 : offset, limit);
+        User user = mapper.map(userService.get(userId), User.class);
+        int total = transactionRepository.countAllByUser(user)/pageSize;
+        total = Math.max(total, 1);
+        Page<Transaction> all = transactionRepository.findAllByUser(user, pageable);
+        List<TransactionDTO> transactions = all.stream()
+                .map(transaction -> mapToDTO(transaction, new TransactionDTO()))
+                .collect(Collectors.toList());
+        return new Applications(transactions, total);
     }
 
     public BigDecimal getTotalInvestment(){
@@ -65,6 +86,49 @@ public class TransactionService {
         return transactions.stream()
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getPayableAmountByUser(String userid){
+        UserDTO user = userService.get(userid);
+        List<Transaction> transactions = transactionRepository.findAllByTypeAndUser(Type.LOAN, mapper.map(user, User.class));
+        return transactions.stream()
+                .map(Transaction::getPayableAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public int getHighestInterestByUser(String userId) {
+        UserDTO user = userService.get(userId);
+        List<Transaction> transactions = transactionRepository.findAllByTypeAndUser(Type.LOAN, mapper.map(user, User.class));
+
+        return transactions.stream()
+                .map(Transaction::getInterest)
+                .max(Integer::compareTo)
+                .orElse(0);
+    }
+
+    public Status getTransactionsStatusByUser(String userId) {
+        UserDTO user = userService.get(userId);
+        List<Transaction> transactions = transactionRepository.findAllByTypeAndUser(Type.LOAN, mapper.map(user, User.class));
+
+        return transactions.stream()
+                .anyMatch(transaction -> transaction.getStatus() == Status.PENDING)
+                ? Status.PENDING
+                : Status.COMPLETED;
+    }
+
+    public TransactionDTO getLoanTotal(String userid){
+        log.info("Getting total loan data by a user {}", userid);
+        UserDTO user = userService.get(userid);
+        if (user != null) {
+            TransactionDTO transaction = new TransactionDTO();
+            transaction.setPayableAmount(getPayableAmountByUser(userid));
+            transaction.setAmount(getLoanByUser(userid));
+            transaction.setInterest(getHighestInterestByUser(userid));
+            transaction.setStatus(getTransactionsStatusByUser(userid));
+            log.info("user was found, data is being returned");
+            return transaction;
+        }
+        throw new NotFoundException("User not Found");
     }
 
     public TransactionDTO get(final String id) {
@@ -109,7 +173,8 @@ public class TransactionService {
         transactionDTO.setAmount(transaction.getAmount());
         transactionDTO.setStatus(transaction.getStatus());
         transactionDTO.setType(transaction.getType());
-        transactionDTO.setReferee(transaction.getReferee());
+        transactionDTO.setInterest(transaction.getInterest());
+        transactionDTO.setPayableAmount(transaction.getPayableAmount());
         transactionDTO.setUser(transaction.getUser() == null ? null : transaction.getUser().getId());
         transactionDTO.setBank(transaction.getBank() == null ? null : transaction.getBank().getId());
         transactionDTO.setDueDate(transaction.getDueDate());
@@ -121,13 +186,15 @@ public class TransactionService {
         transaction.setAmount(transactionDTO.getAmount());
         transaction.setStatus(transactionDTO.getStatus());
         transaction.setType(transactionDTO.getType());
-        transaction.setReferee(transactionDTO.getReferee());
+        transaction.setInterest(transactionDTO.getInterest());
+        final BigDecimal payableAmount = transactionDTO.getPayableAmount() == null ? new BigDecimal("0.00") : transactionDTO.getPayableAmount();
+        transaction.setPayableAmount(payableAmount);
         final User user = transactionDTO.getUser() == null ? null : mapper.map(userService.get(transactionDTO.getUser()), User.class);
         transaction.setUser(user);
         final Bank bank = transactionDTO.getBank() == null ? null : bankRepository.findById(transactionDTO.getBank())
                 .orElseThrow(() -> new NotFoundException("bank not found"));
         transaction.setBank(bank);
-        transaction.setDueDate(transactionDTO.getDueDate());
+        transaction.setDueDate((LocalDateTime) transactionDTO.getDueDate());
     }
 
     public boolean bankExists(final String id) {

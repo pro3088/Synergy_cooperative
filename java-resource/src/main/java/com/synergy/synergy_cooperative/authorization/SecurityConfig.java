@@ -1,5 +1,6 @@
 package com.synergy.synergy_cooperative.authorization;
 
+import com.synergy.synergy_cooperative.authorization.utils.JwtAuthFilter;
 import com.synergy.synergy_cooperative.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 @Configuration
 @EnableWebSecurity
@@ -60,14 +60,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and()
                 .headers().httpStrictTransportSecurity().disable()
-                .and()
-                .logout()
-                .logoutUrl("/api/users/logout")
-                .clearAuthentication(true)
-                .invalidateHttpSession(true)
-                .deleteCookies(accessTokenCookieName)
-                .deleteCookies(refreshTokenCookieName)
-                .permitAll()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

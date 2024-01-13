@@ -1,4 +1,4 @@
-package com.synergy.synergy_cooperative.authorization;
+package com.synergy.synergy_cooperative.authorization.pojo;
 
 public class AuthRequest {
 
