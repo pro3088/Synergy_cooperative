@@ -41,8 +41,7 @@ public class CookiesUtil {
                 .secure(false)
                 .httpOnly(true)
                 .path("/")
-                .maxAge(1800)
-                .sameSite("NONE")
+                .sameSite("STRICT")
                 .build();
     }
 
