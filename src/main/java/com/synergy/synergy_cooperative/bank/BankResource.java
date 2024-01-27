@@ -1,8 +1,12 @@
 package com.synergy.synergy_cooperative.bank;
 
+import com.synergy.synergy_cooperative.bank.interest.InterestDTO;
+import com.synergy.synergy_cooperative.bank.interest.InterestService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +26,11 @@ import javax.validation.Valid;
 @RequestMapping(value = "/api/banks", produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankResource {
 
-    private final BankService bankService;
+    @Autowired
+    private BankService bankService;
 
-    public BankResource(final BankService bankService) {
-        this.bankService = bankService;
-    }
+    @Autowired
+    private InterestService interestService;
 
     @GetMapping
     public ResponseEntity<List<BankDTO>> getAllBanks() {
@@ -40,16 +44,24 @@ public class BankResource {
 
     @PostMapping
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<String> createBank(@RequestBody @Valid final BankDTO bankDTO) {
-        final String createdId = bankService.create(bankDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+    public ResponseEntity<BankDTO> createBank(@RequestBody @Valid final BankDTO bankDTO) {
+        return new ResponseEntity<>(bankService.create(bankDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateBank(@PathVariable(name = "id") final String id,
+    public ResponseEntity<BankDTO> updateBank(@PathVariable(name = "id") final String id,
                                            @RequestBody @Valid final BankDTO bankDTO) {
-        bankService.update(id, bankDTO);
-        return ResponseEntity.ok(id);
+        return ResponseEntity.ok(bankService.update(id, bankDTO));
+    }
+
+    @PutMapping("/interest")
+    public ResponseEntity<InterestDTO> updateInterest(@RequestBody @Valid final InterestDTO interestDTO) {
+        return ResponseEntity.ok(interestService.setInterest(interestDTO.getInterest()));
+    }
+
+    @GetMapping("/interest")
+    public ResponseEntity<InterestDTO> getInterest(@RequestBody @Valid final InterestDTO interestDTO) {
+        return ResponseEntity.ok(interestService.getInterest());
     }
 
     @DeleteMapping("/{id}")
