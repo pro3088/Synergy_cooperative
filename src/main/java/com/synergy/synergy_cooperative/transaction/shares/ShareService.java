@@ -1,4 +1,4 @@
-package com.synergy.synergy_cooperative.shares;
+package com.synergy.synergy_cooperative.transaction.shares;
 
 import com.synergy.synergy_cooperative.dto.TransactionInfo;
 import com.synergy.synergy_cooperative.transaction.TransactionService;
@@ -54,7 +54,7 @@ public class ShareService {
         users.forEach(userDTO -> {
             String id = userDTO.getId();
             String type = Type.INVESTMENT.toString();
-            TransactionInfo transactionsCountByUser = transactionService.getTransactionsCountByUser(id, type);
+            TransactionInfo transactionsCountByUser = transactionService.getTransactionCountByUser(id, type);
             if (transactionsCountByUser.getCount() > 1){
                 BigDecimal amount = transactionService.getAmountByUserAndType(id, type).getAmount();
                 BigDecimal total = transactionService.getTotalByType(type).getAmount();

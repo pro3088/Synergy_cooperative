@@ -1,4 +1,6 @@
-package com.synergy.synergy_cooperative.transaction;
+package com.synergy.synergy_cooperative.transaction.enums;
+
+import com.synergy.synergy_cooperative.transaction.TransactionDTO;
 
 import java.util.List;
 

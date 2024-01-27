@@ -1,4 +1,4 @@
-package com.synergy.synergy_cooperative.shares;
+package com.synergy.synergy_cooperative.transaction.shares;
 
 import com.synergy.synergy_cooperative.user.User;
 import org.hibernate.annotations.CreationTimestamp;

@@ -1,6 +1,5 @@
-package com.synergy.synergy_cooperative.shares;
+package com.synergy.synergy_cooperative.transaction.shares;
 
-import com.synergy.synergy_cooperative.transaction.Transaction;
 import com.synergy.synergy_cooperative.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
