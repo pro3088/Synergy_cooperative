@@ -50,6 +50,7 @@ pipeline {
             steps {
                 sh 'docker build -t $APP_NAME:1.0 .'
                 sh 'docker tag $APP_NAME:1.0 $DOCKER_REGISTRY_URL:$BUILD_NO'
+                sh 'docker login'
                 sh 'docker push $DOCKER_REGISTRY_URL:$BUILD_NO'
             }
         }
