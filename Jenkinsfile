@@ -11,6 +11,7 @@ pipeline {
         PASSWORD = "${SYNERGY_POSTGRES_PASS}"
         TARGET_SERVER_IP = "${SYNERGY_SERVER_URL}"
         TARGET_SERVER_PASS = "${SYNERGY_SERVER_PASS}"
+        SECRET_KEY = "${SECRET_KEY}"
     }
     agent any
     tools {
@@ -28,11 +29,13 @@ pipeline {
                     def newUrl = "jdbc:postgresql://${HOST}:${PORT}/${DATABASE}"
                     def newUserName = "username: ${USERNAME}"
                     def newPassword = "password: ${PASSWORD}"
+                    def secretKey = "secret: ${SECRET_KEY}"
 
                     def configFile = readFile('src/main/resources/application.yaml')
                     configFile = configFile.replaceAll('jdbc:postgresql://localhost:5432/synergy_cooperative', newUrl)
                     configFile = configFile.replaceAll('username: postgres', newUserName)
                     configFile = configFile.replaceAll('password: root', newPassword)
+                    configFile = configFile.replaceAll('secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437', secretKey)
 
                     writeFile(file: 'src/main/resources/application.yaml', text: configFile)
                 }
