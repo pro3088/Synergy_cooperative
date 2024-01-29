@@ -59,40 +59,20 @@ pipeline {
             }
         }
 
-        stage('Stop and Cleanup Remote Docker Containers') {
+        stage('Cleanup Remote Docker Containers') {
             steps {
                 script {
                     // Connect to the target server and clean up containers
-                    def stopCmd = "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
-                    def removeCmd = "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
-
-                    // Execute stop command and check exit code
-                    def stopExitCode = sh(script: stopCmd, returnStatus: true)
-
-                    if (stopExitCode == 0) {
-                        echo "Stopped containers on the target server"
-                    } else {
-                        echo "No containers found to stop on the target server"
-                    }
-
-                    // Execute remove command and check exit code
-                    def removeExitCode = sh(script: removeCmd, returnStatus: true)
-
-                    if (removeExitCode == 0) {
-                        echo "Removed containers on the target server"
-                    } else {
-                        echo "No containers found to remove on the target server"
-                    }
+                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
+                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
                 }
             }
         }
 
-
         stage('Run Docker Container on Remote Server') {
             steps {
                 script {
-                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker pull $DOCKER_REGISTRY_URL:$BUILD_NO'"
-                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
+                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
                 }
             }
         }
