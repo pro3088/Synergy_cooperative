@@ -54,7 +54,7 @@ pipeline {
                     sh 'docker build -t $APP_NAME:1.0 .'
                     sh 'docker tag $APP_NAME:1.0 $DOCKER_REGISTRY_URL:$BUILD_NO'
                     sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin $DOCKER_REGISTRY_URL
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
                     '''
                     sh 'docker push $DOCKER_REGISTRY_URL:$BUILD_NO'
                 }
