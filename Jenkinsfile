@@ -12,6 +12,8 @@ pipeline {
         TARGET_SERVER_IP = "${SYNERGY_SERVER_URL}"
         TARGET_SERVER_PASS = "${SYNERGY_SERVER_PASS}"
         SECRET_KEY = "${SECRET_KEY}"
+        DOCKER_USERNAME = "${DOCKER_PASSWORD}"
+        DOCKER_PASSWORD = "${DOCKER_PASSWORD}"
     }
     agent any
     tools {
@@ -50,7 +52,7 @@ pipeline {
             steps {
                 sh 'docker build -t $APP_NAME:1.0 .'
                 sh 'docker tag $APP_NAME:1.0 $DOCKER_REGISTRY_URL:$BUILD_NO'
-                sh 'docker login'
+                sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                 sh 'docker push $DOCKER_REGISTRY_URL:$BUILD_NO'
             }
         }
