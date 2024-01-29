@@ -80,6 +80,6 @@ pipeline {
         }
     }
     triggers {
-        bitbucketPush()
+        githubPush()
     }
 }
