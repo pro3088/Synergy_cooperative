@@ -1,6 +1,6 @@
 pipeline {
     environment {
-        APP_NAME = 'synergy'
+        APP_NAME = 'synergy_cooperative'
         DOCKER_REGISTRY_URL = "${DOCKER_REGISTRY_URL}"
         BUILD_NO = "${BUILD_NUMBER}"
         HOST = "${SYNERGY_POSTGRES_URL}"
@@ -55,8 +55,8 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 sh 'docker build -t $APP_NAME:1.0 .'
-                sh 'docker tag $APP_NAME:1.0 $DOCKER_REGISTRY_URL/$APP_NAME:$BUILD_NO'
-                sh 'docker push $DOCKER_REGISTRY_URL/$APP_NAME:$BUILD_NO'
+                sh 'docker tag $APP_NAME:1.0 $DOCKER_REGISTRY_URL:$BUILD_NO'
+                sh 'docker push $DOCKER_REGISTRY_URL:$BUILD_NO'
             }
         }
 
