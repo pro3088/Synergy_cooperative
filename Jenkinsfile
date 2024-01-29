@@ -59,15 +59,34 @@ pipeline {
             }
         }
 
-        stage('Cleanup Remote Docker Containers') {
+        stage('Stop and Cleanup Remote Docker Containers') {
             steps {
                 script {
                     // Connect to the target server and clean up containers
-                    sh "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
-                    sh "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
+                    def stopCmd = "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
+                    def removeCmd = "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
+
+                    // Execute stop command and check exit code
+                    def stopExitCode = sh(script: stopCmd, returnStatus: true)
+
+                    if (stopExitCode == 0) {
+                        echo "Stopped containers on the target server"
+                    } else {
+                        echo "No containers found to stop on the target server"
+                    }
+
+                    // Execute remove command and check exit code
+                    def removeExitCode = sh(script: removeCmd, returnStatus: true)
+
+                    if (removeExitCode == 0) {
+                        echo "Removed containers on the target server"
+                    } else {
+                        echo "No containers found to remove on the target server"
+                    }
                 }
             }
         }
+
 
         stage('Run Docker Container on Remote Server') {
             steps {
