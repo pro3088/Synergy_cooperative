@@ -3,6 +3,7 @@ package com.synergy.synergy_cooperative.user;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserDTO {
@@ -30,7 +31,7 @@ public class UserDTO {
 
     private String roles;
 
-    private LocalDateTime dateJoined;
+    private LocalDate dateJoined;
 
     public String getId() {
         return id;
@@ -100,11 +101,11 @@ public class UserDTO {
         return rememberMe;
     }
 
-    public void setDateJoined(LocalDateTime dateJoined) {
+    public void setDateJoined(LocalDate dateJoined) {
         this.dateJoined = dateJoined;
     }
 
-    public LocalDateTime getDateJoined() {
+    public LocalDate getDateJoined() {
         return dateJoined;
     }
 }

@@ -1,5 +1,6 @@
 package com.synergy.synergy_cooperative.transaction.shares;
 
+import com.synergy.synergy_cooperative.bank.interest.InterestService;
 import com.synergy.synergy_cooperative.dto.TransactionInfo;
 import com.synergy.synergy_cooperative.transaction.TransactionService;
 import com.synergy.synergy_cooperative.transaction.enums.Type;
@@ -25,6 +26,9 @@ public class ShareService {
 
     @Autowired
     TransactionService transactionService;
+
+    @Autowired
+    InterestService interestService;
 
     @Autowired
     UserService userService;
@@ -57,11 +61,17 @@ public class ShareService {
             TransactionInfo transactionsCountByUser = transactionService.getTransactionCountByUser(id, type);
             if (transactionsCountByUser.getCount() > 1){
                 BigDecimal amount = transactionService.getAmountByUserAndType(id, type).getAmount();
+                BigDecimal gainFromLoan = getGainFromLoan(amount);
                 BigDecimal total = transactionService.getTotalByType(type).getAmount();
-                BigDecimal earning = (amount.divide(total, RoundingMode.HALF_EVEN).multiply(loan));
+                BigDecimal earning = (amount.divide(total, RoundingMode.HALF_EVEN).multiply(gainFromLoan));
                 addShare(new ShareDTO(UUID.randomUUID().toString(), id, earning));
             }
         });
+    }
+
+    private BigDecimal getGainFromLoan(BigDecimal amount){
+        int interest = interestService.getInterest().getInterest();
+        return ((amount.multiply(BigDecimal.valueOf(interest))).divide(BigDecimal.valueOf(100), RoundingMode.HALF_EVEN));
     }
 
     private void mapToEntity(ShareDTO shareDTO, Share share){

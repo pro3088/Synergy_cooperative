@@ -1,5 +1,6 @@
 package com.synergy.synergy_cooperative.referral;
 
+import com.synergy.synergy_cooperative.dto.ReferralInfo;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,20 +30,20 @@ public class ReferralResource {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ReferralDTO> getReferral(@PathVariable(name = "id") final String id) {
+    public ResponseEntity<ReferralDTO> getReferralById(@PathVariable(name = "id") final String id) {
         return ResponseEntity.ok(referralService.get(id));
     }
 
     @GetMapping("/{id}/count")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Integer> getReferralCountByUser(@PathVariable(name = "id") final String id) {
+    public ResponseEntity<ReferralInfo> getReferralCountByUser(@PathVariable(name = "id") final String id) {
         return ResponseEntity.ok(referralService.getCountByUser(id));
     }
 
     @PostMapping
     @ApiResponse(responseCode = "201")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<String> createReferral(@RequestBody @Valid final ReferralDTO referralDTO, @RequestParam(name = "status") final String status) {
+    public ResponseEntity<ReferralDTO> createReferral(@RequestBody @Valid final ReferralDTO referralDTO, @RequestParam(name = "status") final String status) {
         return new ResponseEntity<>(referralService.create(referralDTO, status), HttpStatus.CREATED);
     }
 

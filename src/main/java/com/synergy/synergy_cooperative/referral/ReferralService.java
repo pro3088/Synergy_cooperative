@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.synergy.synergy_cooperative.dto.ReferralInfo;
+import com.synergy.synergy_cooperative.transaction.TransactionService;
 import com.synergy.synergy_cooperative.user.*;
 import com.synergy.synergy_cooperative.util.NotFoundException;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,8 @@ public class ReferralService {
     UserService userService;
 
     ModelMapper mapper = new ModelMapper();
+
+    protected static Logger log = LoggerFactory.getLogger(ReferralService.class);
 
     public List<ReferralDTO> findAll() {
         final List<Referral> referrals = referralRepository.findAll(Sort.by("id"));
@@ -42,24 +48,28 @@ public class ReferralService {
                 .orElseThrow(NotFoundException::new);
     }
 
-    public int getCountByUser(String userId){
+    public ReferralInfo getCountByUser(String userId){
         User user = mapper.map(userService.get(userId), User.class);
-        return referralRepository.countAllByUser(user);
+        return new ReferralInfo(referralRepository.countAllByUser(user));
     }
 
-    public String create(final ReferralDTO referralDTO, String status) {
+    public ReferralDTO create(final ReferralDTO referralDTO, String status) {
+        log.info("Creating new referral code");
         final Referral referral = new Referral();
         UserStatus userStatus = UserStatus.valueOf(status);
         mapToEntity(referralDTO, referral);
         referral.setId(UUID.randomUUID().toString());
         if (referral.getUsers() != null) {
             UserDTO user = userService.get(referralDTO.getUsers());
-            referral.setCode(userStatus.getCode() + UUID.randomUUID() + user.getId().substring(0, 4));
+            referral.setCode(userStatus.getCode() + "-" + UUID.randomUUID()+ "-" + user.getId().substring(0, 4));
         }
         else{
-            referral.setCode(userStatus.getCode() + UUID.randomUUID());
+            referral.setCode(userStatus.getCode()+ "-" + UUID.randomUUID());
         }
-        return referralRepository.save(referral).getId();
+        log.info("Created referral code");
+        referralRepository.save(referral);
+
+        return mapToDTO(referral, new ReferralDTO());
     }
 
     public void update(final String id, final ReferralDTO referralDTO) {

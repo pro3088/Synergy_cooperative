@@ -1,5 +1,6 @@
 package com.synergy.synergy_cooperative.user;
 
+import com.synergy.synergy_cooperative.transaction.shares.Share;
 import com.synergy.synergy_cooperative.transaction.Transaction;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
@@ -38,6 +39,9 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private Set<Transaction> transactions;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Share> shares;
 
     @CreationTimestamp
     @Type(type = "org.hibernate.type.LocalDateTimeType")
@@ -135,5 +139,13 @@ public class User {
 
     public void setRoles(String roles) {
         this.roles = roles;
+    }
+
+    public Set<Share> getShares() {
+        return shares;
+    }
+
+    public void setShares(Set<Share> shares) {
+        this.shares = shares;
     }
 }

@@ -14,11 +14,13 @@ public class BankDTO {
     private String name;
 
     @NotNull
-    private Integer accountNumber;
+    private String accountNumber;
 
     @NotNull
     @Size(max = 255)
     private String accountName;
+
+    private boolean company;
 
     public String getId() {
         return id;
@@ -36,11 +38,11 @@ public class BankDTO {
         this.name = name;
     }
 
-    public Integer getAccountNumber() {
+    public String getAccountNumber() {
         return accountNumber;
     }
 
-    public void setAccountNumber(final Integer accountNumber) {
+    public void setAccountNumber(final String accountNumber) {
         this.accountNumber = accountNumber;
     }
 
@@ -52,4 +54,11 @@ public class BankDTO {
         this.accountName = accountName;
     }
 
+    public boolean isCompany() {
+        return company;
+    }
+
+    public void setCompany(boolean company) {
+        this.company = company;
+    }
 }

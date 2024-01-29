@@ -1,9 +1,9 @@
 package com.synergy.synergy_cooperative.bank;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.synergy.synergy_cooperative.bank.interest.InterestDTO;
 import com.synergy.synergy_cooperative.bank.interest.InterestService;
 import com.synergy.synergy_cooperative.util.NotFoundException;
 import org.modelmapper.ModelMapper;
@@ -23,7 +23,7 @@ public class BankService {
     ModelMapper mapper = new ModelMapper();
 
     public List<BankDTO> findAll() {
-        final List<Bank> banks = bankRepository.findAll(Sort.by("id"));
+        final List<Bank> banks = bankRepository.findAll(Sort.by("name"));
         return banks.stream()
                 .map(bank -> mapToDTO(bank, new BankDTO()))
                 .collect(Collectors.toList());
@@ -38,6 +38,7 @@ public class BankService {
     public BankDTO create(final BankDTO bankDTO) {
         final Bank bank = new Bank();
         mapToEntity(bankDTO, bank);
+        bank.setId(UUID.randomUUID().toString());
         bankRepository.save(bank);
         return bankDTO;
     }
@@ -59,14 +60,15 @@ public class BankService {
         bankDTO.setName(bank.getName());
         bankDTO.setAccountNumber(bank.getAccountNumber());
         bankDTO.setAccountName(bank.getAccountName());
+        bankDTO.setCompany(bank.isCompany());
         return bankDTO;
     }
 
-    private Bank mapToEntity(final BankDTO bankDTO, final Bank bank) {
+    private void mapToEntity(final BankDTO bankDTO, final Bank bank) {
         bank.setName(bankDTO.getName());
         bank.setAccountNumber(bankDTO.getAccountNumber());
         bank.setAccountName(bankDTO.getAccountName());
-        return bank;
+        bank.setCompany(bankDTO.isCompany());
     }
 
     public boolean accountNumberExists(final Integer accountNumber) {

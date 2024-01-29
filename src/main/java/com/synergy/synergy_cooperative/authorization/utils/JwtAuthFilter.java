@@ -100,10 +100,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
             else{
                 SecurityContextHolder.clearContext();
-//                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName,"").clear());
-//                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,"").clear());
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName,"").clear());
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,"").clear());
                 if (warning != null)
-                    throw new JwtException(warning);
+                    log.info("Warning regarding authentication with error: {}", warning);
             }
         }
         filterChain.doFilter(request, response);

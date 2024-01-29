@@ -1,6 +1,9 @@
 package com.synergy.synergy_cooperative.transaction;
 
 import com.synergy.synergy_cooperative.bank.Bank;
+import com.synergy.synergy_cooperative.transaction.enums.Currency;
+import com.synergy.synergy_cooperative.transaction.enums.Status;
+import com.synergy.synergy_cooperative.transaction.enums.Type;
 import com.synergy.synergy_cooperative.user.User;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -27,19 +30,23 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    @Column()
-    private int interest;
-
     @Column(precision = 10, scale = 2)
-    private BigDecimal payableAmount;
+    private BigDecimal deposit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id", unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_id")
     private Bank bank;
+
+    @Column(unique = true)
+    private String narration;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Currency currency;
 
     @CreationTimestamp
     @org.hibernate.annotations.Type(type = "org.hibernate.type.LocalDateTimeType")
@@ -86,20 +93,12 @@ public class Transaction {
         this.type = type;
     }
 
-    public int getInterest() {
-        return interest;
+    public BigDecimal getDeposit() {
+        return deposit;
     }
 
-    public void setInterest(int interest) {
-        this.interest = interest;
-    }
-
-    public BigDecimal getPayableAmount() {
-        return payableAmount;
-    }
-
-    public void setPayableAmount(BigDecimal payableAmount) {
-        this.payableAmount = payableAmount;
+    public void setDeposit(BigDecimal deposit) {
+        this.deposit = deposit;
     }
 
     public User getUser() {
@@ -140,5 +139,21 @@ public class Transaction {
 
     public void setDueDate(LocalDateTime dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public String getNarration() {
+        return narration;
+    }
+
+    public void setNarration(String narration) {
+        this.narration = narration;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 }

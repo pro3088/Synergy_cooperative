@@ -1,9 +1,9 @@
 package com.synergy.synergy_cooperative.transaction;
 
-import io.swagger.models.auth.In;
+import com.synergy.synergy_cooperative.dto.TransactionInfo;
+import com.synergy.synergy_cooperative.transaction.shares.ShareService;
+import com.synergy.synergy_cooperative.transaction.enums.Applications;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -27,52 +27,38 @@ public class TransactionResource {
     @Autowired
     TransactionService transactionService;
 
+    @Autowired
+    ShareService shareService;
+
+
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         return ResponseEntity.ok(transactionService.findAll());
     }
 
-    @GetMapping("/total/investment")
+    @GetMapping("/total/{userId}/gain")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<BigDecimal> getTotalInvestment() {
-        return ResponseEntity.ok(transactionService.getTotalInvestment());
+    public ResponseEntity<TransactionInfo> getTotalEarningsById(@PathVariable(name = "userId") final String id){
+        return ResponseEntity.ok(shareService.getTotalEarning(id));
     }
 
-    @GetMapping("/total/investment/{userId}")
+    @GetMapping("/total/{type}/{userId}")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<BigDecimal> getInvestmentByUser(@PathVariable(name = "userId") final String id) {
-        return ResponseEntity.ok(transactionService.getInvestmentByUser(id));
+    public ResponseEntity<TransactionInfo> getAmountByUserAndType(@PathVariable(name = "userId") final String id, @PathVariable(name = "type") final String type) {
+        return ResponseEntity.ok(transactionService.getAmountByUserAndType(id, type));
     }
 
-    @GetMapping("/total/loan")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<BigDecimal> getTotalLoan() {
-        return ResponseEntity.ok(transactionService.getTotalLoans());
-    }
-
-    @GetMapping("/total/loan/{userId}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<BigDecimal> getLoanByUser(@PathVariable(name = "userId") final String id) {
-        return ResponseEntity.ok(transactionService.getLoanByUser(id));
-    }
-
-    @GetMapping("/total/withdrawn")
+    @GetMapping("/total/{type}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<BigDecimal> getTotalWithdrawn() {
-        return ResponseEntity.ok(transactionService.getTotalWithdrawn());
+    public ResponseEntity<TransactionInfo> getTotalByType(@PathVariable(name = "type") final String type) {
+        return ResponseEntity.ok(transactionService.getTotalByType(type));
     }
 
-    @GetMapping("/total/investment/{userId}/{type}/count")
+    @GetMapping("/total/{type}/{userId}/count")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Integer> getTransactionsCountByUser(@PathVariable(name = "userId") final String id, @PathVariable(name = "type") final String type) {
-        return ResponseEntity.ok(transactionService.getTransactionsCountByUser(id, type));
-    }
-
-    @GetMapping("/total/loan/{userId}/info")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<TransactionDTO> getTotalLoanByUser(@PathVariable(name = "userId") final String id) {
-        return ResponseEntity.ok(transactionService.getLoanTotal(id));
+    public ResponseEntity<TransactionInfo> getTransactionCountByUser(@PathVariable(name = "userId") final String id, @PathVariable(name = "type") final String type) {
+        return ResponseEntity.ok(transactionService.getTransactionCountByUser(id, type));
     }
 
     @GetMapping("/{id}")
@@ -81,12 +67,24 @@ public class TransactionResource {
         return ResponseEntity.ok(transactionService.get(id));
     }
 
+    @GetMapping("/{id}/deposit/status")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<TransactionInfo> getDepositStatusByUser(@PathVariable(name = "id") final String id) {
+        return ResponseEntity.ok(transactionService.getDepositStatusByUser(id));
+    }
+
+    @GetMapping("/{id}/deposit")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<TransactionInfo> getDepositById(@PathVariable(name = "id") final String id) {
+        return ResponseEntity.ok(transactionService.getDepositByUser(id));
+    }
+
     @GetMapping("/{id}/applications")
     @PreAuthorize("hasAuthority('ROLE_USER')")
     public ResponseEntity<Applications> getApplicationsByUser(@PathVariable(name = "id") final String id,
-                                                                @RequestParam(name = "offset") final int offset,
-                                                                @RequestParam(name = "limit") final int limit,
-                                                        @RequestParam(name = "pageSize") final int pageSize) {
+                                                              @RequestParam(name = "offset") final int offset,
+                                                              @RequestParam(name = "limit") final int limit,
+                                                              @RequestParam(name = "pageSize") final int pageSize) {
         final Applications applications = transactionService.getApplicationsByUser(offset, limit, id, pageSize);
         return new ResponseEntity<>(applications, HttpStatus.ACCEPTED);
     }
@@ -94,19 +92,17 @@ public class TransactionResource {
     @PostMapping
     @ApiResponse(responseCode = "201")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<String> createTransaction(
+    public ResponseEntity<TransactionDTO> createTransaction(
             @RequestBody @Valid final TransactionDTO transactionDTO) {
-        final String createdId = transactionService.create(transactionDTO);
-        log.info("Created transaction with id, {}", createdId);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+        return new ResponseEntity<>(transactionService.create(transactionDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<String> updateTransaction(@PathVariable(name = "id") final String id,
+    public ResponseEntity<TransactionDTO> updateTransaction(@PathVariable(name = "id") final String id,
             @RequestBody @Valid final TransactionDTO transactionDTO) {
-        transactionService.update(id, transactionDTO);
-        return ResponseEntity.ok(id);
+        log.info("Request to update Transaction with id {}", id);
+        return new ResponseEntity<>(transactionService.update(id, transactionDTO), HttpStatus.ACCEPTED);
     }
 
     @DeleteMapping("/{id}")

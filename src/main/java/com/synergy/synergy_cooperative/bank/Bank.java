@@ -4,6 +4,7 @@ import com.synergy.synergy_cooperative.transaction.Transaction;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 
 @Entity
@@ -17,19 +18,16 @@ public class Bank {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private Integer accountNumber;
+    private String accountNumber;
 
     @Column(nullable = false)
     private String accountName;
 
-    @OneToOne(mappedBy = "bank", fetch = FetchType.LAZY)
-    private Transaction transaction;
+    @Column()
+    private boolean company;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime dateCreated;
-
-    @Column(nullable = false)
-    private LocalDateTime lastUpdated;
+    @OneToMany(mappedBy = "bank")
+    private Set<Transaction> transaction;
 
     public String getId() {
         return id;
@@ -47,11 +45,11 @@ public class Bank {
         this.name = name;
     }
 
-    public Integer getAccountNumber() {
+    public String getAccountNumber() {
         return accountNumber;
     }
 
-    public void setAccountNumber(final Integer accountNumber) {
+    public void setAccountNumber(final String accountNumber) {
         this.accountNumber = accountNumber;
     }
 
@@ -63,28 +61,19 @@ public class Bank {
         this.accountName = accountName;
     }
 
-    public Transaction getTransaction() {
+    public Set<Transaction> getTransaction() {
         return transaction;
     }
 
-    public void setTransaction(final Transaction transaction) {
+    public void setTransaction(Set<Transaction> transaction) {
         this.transaction = transaction;
     }
 
-    public LocalDateTime getDateCreated() {
-        return dateCreated;
+    public boolean isCompany() {
+        return company;
     }
 
-    public void setDateCreated(final LocalDateTime dateCreated) {
-        this.dateCreated = dateCreated;
+    public void setCompany(boolean company) {
+        this.company = company;
     }
-
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(final LocalDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
-
 }

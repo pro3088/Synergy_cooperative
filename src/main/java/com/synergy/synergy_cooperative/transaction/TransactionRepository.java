@@ -1,5 +1,6 @@
 package com.synergy.synergy_cooperative.transaction;
 
+import com.synergy.synergy_cooperative.transaction.enums.Type;
 import com.synergy.synergy_cooperative.user.User;
 
 import org.springframework.data.domain.Page;

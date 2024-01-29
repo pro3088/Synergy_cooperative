@@ -3,6 +3,7 @@ package com.synergy.synergy_cooperative.user;
 import com.synergy.synergy_cooperative.authorization.pojo.AuthRequest;
 import com.synergy.synergy_cooperative.authorization.utils.CookiesUtil;
 import com.synergy.synergy_cooperative.authorization.JwtService;
+import com.synergy.synergy_cooperative.dto.UserInfo;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.util.List;
@@ -70,7 +71,7 @@ public class UserResource {
 
     @GetMapping("/{status}/count")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Integer> getCountByStatus(@PathVariable(name = "status") final String status) {
+    public ResponseEntity<UserInfo> getCountByStatus(@PathVariable(name = "status") final String status) {
         return ResponseEntity.ok(userService.getCountByStatus(status));
     }
 

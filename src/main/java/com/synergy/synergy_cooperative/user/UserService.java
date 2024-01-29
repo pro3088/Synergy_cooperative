@@ -2,10 +2,12 @@ package com.synergy.synergy_cooperative.user;
 
 import com.synergy.synergy_cooperative.authorization.pojo.AuthRequest;
 import com.synergy.synergy_cooperative.authorization.pojo.UserInfoDetails;
+import com.synergy.synergy_cooperative.dto.UserInfo;
 import com.synergy.synergy_cooperative.referral.ReferralDTO;
 import com.synergy.synergy_cooperative.referral.ReferralService;
 import com.synergy.synergy_cooperative.util.NotFoundException;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -104,6 +106,7 @@ public class UserService implements UserDetailsService {
             User response = new User();
             response.setId(user.get().getId());
             response.setStatus(user.get().getStatus());
+            response.setDateCreated(user.get().getDateCreated());
             response.setFirstName(user.get().getFirstName());
             response.setLastName(user.get().getLastName());
             response.setEmailAddress(user.get().getEmailAddress());
@@ -113,9 +116,9 @@ public class UserService implements UserDetailsService {
         return null;
     }
 
-    public int getCountByStatus(String status){
+    public UserInfo getCountByStatus(String status){
         UserStatus userStatus = UserStatus.valueOf(status);
-        return usersRepository.countAllByStatus(userStatus);
+        return new UserInfo(usersRepository.countAllByStatus(userStatus));
     }
 
     public void delete(final String id) {
@@ -132,7 +135,8 @@ public class UserService implements UserDetailsService {
         userDTO.setStatus(user.getStatus());
         userDTO.setEmailAddress(user.getEmailAddress());
         userDTO.setRoles(user.getRoles());
-        userDTO.setDateJoined(user.getDateCreated());
+        LocalDate date = (user.getDateCreated() != null) ? user.getDateCreated().toLocalDate() : null;
+        userDTO.setDateJoined(date);
         return userDTO;
     }
 
