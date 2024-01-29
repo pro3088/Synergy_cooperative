@@ -63,8 +63,8 @@ pipeline {
             steps {
                 script {
                     // Connect to the target server and clean up containers
-                    def stopCmd = "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
-                    def removeCmd = "sshpass -p $SYNERGY_POSTGRES_PASS ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
+                    def stopCmd = "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
+                    def removeCmd = "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
 
                     // Execute stop command and check exit code
                     def stopExitCode = sh(script: stopCmd, returnStatus: true)
@@ -91,8 +91,8 @@ pipeline {
         stage('Run Docker Container on Remote Server') {
             steps {
                 script {
-                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh root@$TARGET_SERVER_IP 'docker pull $DOCKER_REGISTRY_URL:$BUILD_NO'"
-                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
+                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker pull $DOCKER_REGISTRY_URL:$BUILD_NO'"
+                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
                 }
             }
         }
