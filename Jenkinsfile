@@ -7,7 +7,7 @@ pipeline {
         PORT = '25060'
         DATABASE = 'synergy'
         FILEPATH = 'src/main/resources/application.yml'
-        USERNAME = 'synergy'
+        USERNAME = 'doadmin'
         PASSWORD = "${SYNERGY_POSTGRES_PASS}"
         TARGET_SERVER_IP = "${SYNERGY_SERVER_URL}"
         TARGET_SERVER_PASS = "${SYNERGY_SERVER_PASS}"
