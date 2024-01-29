@@ -63,8 +63,8 @@ pipeline {
             steps {
                 script {
                     // Connect to the target server and clean up containers
-                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
-                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
+                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" | xargs docker stop'"
+                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker ps -q --filter \"label=$APP_NAME\" -a | xargs docker rm'"
                 }
             }
         }
@@ -72,7 +72,7 @@ pipeline {
         stage('Run Docker Container on Remote Server') {
             steps {
                 script {
-                    sh "sshpass -p $SYNERGY_SERVER_PASS ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
+                    sh "sshpass -p '$SYNERGY_SERVER_PASS' ssh -o stricthostkeychecking=no root@$TARGET_SERVER_IP 'docker run -d --name $APP_NAME -p 8000:8000 $DOCKER_REGISTRY_URL:$BUILD_NO'"
                 }
             }
         }
