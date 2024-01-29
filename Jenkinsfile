@@ -46,12 +46,6 @@ pipeline {
                 sh 'mvn clean install'
             }
         }
-        stage('Maven Deploy') {
-            steps {
-                sh 'mvn clean deploy'
-            }
-        }
-
         stage('Docker Build and Push') {
             steps {
                 sh 'docker build -t $APP_NAME:1.0 .'
@@ -59,7 +53,6 @@ pipeline {
                 sh 'docker push $DOCKER_REGISTRY_URL:$BUILD_NO'
             }
         }
-
         stage('Cleanup Remote Docker Containers') {
             steps {
                 script {
