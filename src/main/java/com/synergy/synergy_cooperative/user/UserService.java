@@ -60,10 +60,6 @@ public class UserService implements UserDetailsService {
         final User user = new User();
         mapToEntity(userDTO, user);
 
-        String roles = (user.getStatus().toString().equals("ADMIN")) ? "ROLE_ADMIN" : "ROLE_USER";
-
-        user.setRoles(roles);
-
         user.setId(UUID.randomUUID().toString());
         user.setPassword(encoder.encode(user.getPassword()));
 
@@ -72,6 +68,10 @@ public class UserService implements UserDetailsService {
         referraldto.setUsed(true);
 
         user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,2)));
+
+        String roles = (user.getStatus().toString().equals("ADMIN")) ? "ROLE_ADMIN,ROLE_USER" : "ROLE_USER";
+
+        user.setRoles(roles);
 
         referralService.update(referraldto.getId(), referraldto);
         usersRepository.save(user);
