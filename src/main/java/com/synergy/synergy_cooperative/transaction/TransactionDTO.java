@@ -44,6 +44,8 @@ public class TransactionDTO {
 
     private LocalDate dueDate;
 
+    private LocalDate dateCreated;
+
     private String accountName;
 
     private String accountNumber;
@@ -160,5 +162,13 @@ public class TransactionDTO {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public LocalDate getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }

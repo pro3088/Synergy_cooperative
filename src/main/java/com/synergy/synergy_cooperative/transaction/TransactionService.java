@@ -189,7 +189,9 @@ public class TransactionService {
         transactionDTO.setUser(transaction.getUser() == null ? null : transaction.getUser().getId());
         transactionDTO.setBank(transaction.getBank() == null ? null : transaction.getBank().getId());
         LocalDate date = (transaction.getDueDate() != null) ? transaction.getDueDate().toLocalDate() : null;
+        LocalDate dateCreated = (transaction.getDateCreated() != null) ? transaction.getDateCreated().toLocalDate() : null;
         transactionDTO.setDueDate(date);
+        transactionDTO.setDateCreated(dateCreated);
         transactionDTO.setNarration(transaction.getNarration());
         return transactionDTO;
     }
