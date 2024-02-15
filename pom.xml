@@ -12,8 +12,9 @@
 
     <groupId>com.synergy</groupId>
     <artifactId>synergy-cooperative</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-RELEASE</version>
     <name>synergy-cooperative</name>
+    <packaging>war</packaging>
 
     <properties>
         <java.version>11</java.version>
