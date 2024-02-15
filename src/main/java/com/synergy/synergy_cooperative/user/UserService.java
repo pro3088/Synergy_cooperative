@@ -67,7 +67,7 @@ public class UserService implements UserDetailsService {
         ReferralDTO referraldto = referralService.getByCode(user.getReferralCode());
         referraldto.setUsed(true);
 
-        user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,2)));
+        user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,3)));
 
         String roles = (user.getStatus().toString().equals("ADMIN")) ? "ROLE_ADMIN,ROLE_USER" : "ROLE_USER";
 

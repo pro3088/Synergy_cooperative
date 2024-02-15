@@ -2,9 +2,9 @@ package com.synergy.synergy_cooperative.user;
 
 
 public enum UserStatus {
-    ADMIN("AD"),
-    INVESTOR("IN"),
-    LOAN("LO");
+    ADMIN("ADM"),
+    FINANCIAL_MEMBER("FIN"),
+    MEMBER("MEM");
 
     final String code;
 
