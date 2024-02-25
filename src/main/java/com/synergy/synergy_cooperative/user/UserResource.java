@@ -4,7 +4,6 @@ import com.synergy.synergy_cooperative.authorization.pojo.AuthRequest;
 import com.synergy.synergy_cooperative.authorization.utils.CookiesUtil;
 import com.synergy.synergy_cooperative.authorization.JwtService;
 import com.synergy.synergy_cooperative.dto.UserInfo;
-import com.synergy.synergy_cooperative.util.ResponseObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.util.List;
@@ -20,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import javax.ws.rs.core.Response;
 
 
 @RestController
