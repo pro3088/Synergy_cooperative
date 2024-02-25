@@ -4,6 +4,7 @@ import com.synergy.synergy_cooperative.authorization.pojo.AuthRequest;
 import com.synergy.synergy_cooperative.authorization.utils.CookiesUtil;
 import com.synergy.synergy_cooperative.authorization.JwtService;
 import com.synergy.synergy_cooperative.dto.UserInfo;
+import com.synergy.synergy_cooperative.util.ResponseObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.ws.rs.core.Response;
 
 
 @RestController
@@ -77,62 +80,77 @@ public class UserResource {
 
     @PostMapping("/signup")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<UserDTO> createUser(@RequestBody @Valid final UserDTO userDTO, HttpServletResponse response) {
+    public ResponseEntity<?> createUser(@RequestBody @Valid final UserDTO userDTO, HttpServletResponse response) {
         log.info("Request to create a new user");
         if (userDTO.getFirstName() == null || userDTO.getLastName() == null
                 || userDTO.getPassword() == null || userDTO.getEmailAddress() == null
                 || userDTO.getReferralCode() == null) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Field(s) is null", HttpStatus.BAD_REQUEST);
         }
 
-        UserDTO user = userService.create(userDTO);
-        log.info("User has been created");
-        String token = jwtService.generateToken(user.getEmailAddress());
-        // Set HTTP-only cookie in the response
-        response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
+        UserDTO user = null;
+        try {
+            user = userService.create(userDTO);
 
-        if (userDTO.getRememberMe()){
-            String refreshToken = jwtService.generateRefreshToken(user.getEmailAddress());
-            response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil( refreshTokenCookieName,refreshToken).getCookie());
+            String token = jwtService.generateToken(user.getEmailAddress());
+            // Set HTTP-only cookie in the response
+            response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName,token).getCookie());
+
+            if (userDTO.getRememberMe()){
+                String refreshToken = jwtService.generateRefreshToken(user.getEmailAddress());
+                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil( refreshTokenCookieName,refreshToken).getCookie());
+            }
+
+            log.info("JWT Token has been created");
+        } catch (Exception e) {
+            log.error("Error creating user with error: {}",e.getMessage());
+            String errorMessage = (e.getMessage() != null) ? e.getMessage() : "Confirm details";
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
-
-        log.info("JWT Token has been created");
 
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<String> updateUser(@PathVariable(name = "id") final String id,
+    public ResponseEntity<?> updateUser(@PathVariable(name = "id") final String id,
             @RequestBody @Valid final UserDTO userDTO) {
-        userService.update(id, userDTO);
-        return ResponseEntity.ok(id);
+        UserDTO update;
+        try {
+            update = userService.update(id, userDTO);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok(update);
     }
 
     @PostMapping("/login")
     @ApiResponse(responseCode = "201")
-    public ResponseEntity<UserDTO> validateUser(@RequestBody @Valid final AuthRequest authRequest, HttpServletResponse response){
+    public ResponseEntity<?> validateUser(@RequestBody @Valid final AuthRequest authRequest, HttpServletResponse response){
         log.info("Request to login");
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        if (authentication.isAuthenticated()) {
-            UserDTO user = userService.validateUser(authRequest);
-            if (user != null){
-                String token = jwtService.generateToken(user.getEmailAddress());
-                // Set HTTP-only cookie in the response
-                response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil( accessTokenCookieName,token).getCookie());
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+            if (authentication.isAuthenticated()) {
+                UserDTO user = userService.validateUser(authRequest);
+                if (user != null) {
+                    String token = jwtService.generateToken(user.getEmailAddress());
+                    // Set HTTP-only cookie in the response
+                    response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(accessTokenCookieName, token).getCookie());
 
-                if (authRequest.isRememberMe()){
-                    String refreshToken = jwtService.generateRefreshToken(user.getEmailAddress());
-                    response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil( refreshTokenCookieName,refreshToken).getCookie());
+                    if (authRequest.isRememberMe()) {
+                        String refreshToken = jwtService.generateRefreshToken(user.getEmailAddress());
+                        response.addHeader(HttpHeaders.SET_COOKIE, new CookiesUtil(refreshTokenCookieName, refreshToken).getCookie());
+                    }
+
+                    log.info("JWT Token has been generated");
+                    return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
                 }
-
-                log.info("JWT Token has been generated");
-                return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
             }
-        } else {
-            throw new UsernameNotFoundException("Invalid user request!");
+        } catch (AuthenticationException e) {
+            log.error("UserName or Password is incorrect with error: {}", e.getMessage());
+            return new ResponseEntity<>("UserName or Password is incorrect", HttpStatus.FORBIDDEN);
         }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
     }
 
     @DeleteMapping("/{id}")

@@ -36,7 +36,7 @@ pipeline {
                     def configFile = readFile("$FILEPATH")
                     configFile = configFile.replaceAll('jdbc:postgresql://localhost:5432/synergy_cooperative', newUrl)
                     configFile = configFile.replaceAll('username: postgres', newUserName)
-                    configFile = configFile.replaceAll('password: root', newPassword)
+                    configFile = configFile.replaceAll('password: password', newPassword)
                     configFile = configFile.replaceAll('secret: secret-key', secretKey)
 
                     writeFile(file: "$FILEPATH", text: configFile)
