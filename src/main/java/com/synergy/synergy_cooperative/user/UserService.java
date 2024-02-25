@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import groovy.transform.Undefined;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,10 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(NotFoundException::new);
     }
 
+    public boolean userExists(final String address) {
+        return usersRepository.findByEmailAddress(address).isPresent();
+    }
+
     public UserDTO create(final UserDTO userDTO) {
         log.info("Creating a new user with name {}", userDTO.getFirstName());
         final User user = new User();
@@ -63,11 +68,19 @@ public class UserService implements UserDetailsService {
         user.setId(UUID.randomUUID().toString());
         user.setPassword(encoder.encode(user.getPassword()));
 
-        log.info("updating referral code to used");
-        ReferralDTO referraldto = referralService.getByCode(user.getReferralCode());
+        log.info("Verifying user info");
+        Optional.of(user)
+                .filter(u -> !userExists(userDTO.getEmailAddress()))
+                .orElseThrow(() -> new RuntimeException("Email has been used. Log in to your account."));
+
+        log.info("Verifying referral code");
+        ReferralDTO referraldto = Optional.of(referralService.getByCode(user.getReferralCode()))
+                .filter(dto -> !dto.isUsed())
+                .orElseThrow(() -> new RuntimeException("Code not valid"));
+
         referraldto.setUsed(true);
 
-        user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,2)));
+        user.setStatus(UserStatus.getByCode(user.getReferralCode().substring(0,3)));
 
         String roles = (user.getStatus().toString().equals("ADMIN")) ? "ROLE_ADMIN,ROLE_USER" : "ROLE_USER";
 
@@ -75,14 +88,15 @@ public class UserService implements UserDetailsService {
 
         referralService.update(referraldto.getId(), referraldto);
         usersRepository.save(user);
+        log.info("User has been created");
         return mapToDTO(user, new UserDTO());
     }
 
-    public void update(final String id, final UserDTO userDTO) {
+    public UserDTO update(final String id, final UserDTO userDTO) {
         final User user = usersRepository.findById(id)
                 .orElseThrow(NotFoundException::new);
         mapToEntity(userDTO, user);
-        usersRepository.save(user);
+        return mapToDTO(usersRepository.save(user), new UserDTO());
     }
 
     @Override

@@ -45,7 +45,7 @@ public class ReferralService {
     public ReferralDTO getByCode(String code){
         return referralRepository.findByCode(code)
                 .map(referral -> mapToDTO(referral, new ReferralDTO()))
-                .orElseThrow(NotFoundException::new);
+                .orElseThrow(() -> new NullPointerException("Code not valid"));
     }
 
     public ReferralInfo getCountByUser(String userId){
