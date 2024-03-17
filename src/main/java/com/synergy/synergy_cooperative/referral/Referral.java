@@ -18,7 +18,7 @@ public class Referral {
     @Column(nullable = false)
     private boolean used;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", updatable = false)
     private User user;
 

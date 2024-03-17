@@ -27,6 +27,8 @@ public class UserDTO {
 
     private boolean rememberMe;
 
+    private String resetPasswordToken;
+
     private UserStatus status;
 
     private String roles;
@@ -99,6 +101,14 @@ public class UserDTO {
 
     public boolean getRememberMe() {
         return rememberMe;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
     }
 
     public void setDateJoined(LocalDate dateJoined) {

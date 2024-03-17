@@ -6,6 +6,7 @@ import com.synergy.synergy_cooperative.authorization.JwtService;
 import com.synergy.synergy_cooperative.dto.UserInfo;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -106,6 +108,13 @@ public class UserResource {
         }
 
         return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/mail/reset/{email}")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> sendForgotPassMail(@PathVariable(name = "email") final String email) throws MessagingException, UnsupportedEncodingException {
+        userService.sendEmail(email);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")

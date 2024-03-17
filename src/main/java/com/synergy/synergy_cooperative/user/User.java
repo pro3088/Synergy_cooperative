@@ -28,14 +28,14 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true)
-    private String referralCode;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
     private String roles;
+
+    @Column
+    private String resetPasswordToken;
 
     @OneToMany(mappedBy = "user")
     private Set<Transaction> transactions;
@@ -84,15 +84,6 @@ public class User {
     public void setPassword(final String password) {
         this.password = password;
     }
-
-    public String getReferralCode() {
-        return referralCode;
-    }
-
-    public void setReferralCode(final String referralCode) {
-        this.referralCode = referralCode;
-    }
-
     public UserStatus getStatus() {
         return status;
     }
@@ -147,5 +138,13 @@ public class User {
 
     public void setShares(Set<Share> shares) {
         this.shares = shares;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
     }
 }
