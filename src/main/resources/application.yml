@@ -10,6 +10,17 @@ spring:
       max-wait-millis: 30000
       validation-query: select 1
       validation-query-timeout: 30
+  mail:
+    host: smtp.gmail.com
+    username: rotimiabayomi@gmail.com
+    password: raf1052258
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update
