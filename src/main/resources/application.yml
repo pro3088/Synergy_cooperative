@@ -12,8 +12,8 @@ spring:
       validation-query-timeout: 30
   mail:
     host: smtp.gmail.com
-    username: rotimiabayomi@gmail.com
-    password: raf1052258
+    username: example@gmail.com
+    password: example
     port: 587
     properties:
       mail:
